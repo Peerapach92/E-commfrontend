@@ -36,3 +36,13 @@ npm run build
 ```
 
 The production build is served by the included `Dockerfile` and `nginx.conf`.
+
+## Publish to Docker Hub
+
+Create the `e-commfrontend` repository on Docker Hub, then build and push from the project root:
+
+```bash
+docker login -u <your-dockerhub-username>
+docker build -t <your-dockerhub-username>/e-commfrontend:v1 ./frontend
+docker push <your-dockerhub-username>/e-commfrontend:v1
+```
