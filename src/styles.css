@@ -1,0 +1,1500 @@
+/* =====================================================================
+   PERSONA — Persona 3 inspired theme (ค่าเริ่มต้น = สีน้ำเงิน)
+   แก้เฉพาะชั้นหน้าตา: ชื่อ class เดิมทั้งหมดถูกใช้ต่อ ไม่ต้องแก้ logic
+   ===================================================================== */
+
+:root {
+  --navy-900: #050b1e;
+  --navy-800: #0a1533;
+  --navy-700: #0f2050;
+  --navy-600: #16306f;
+  --blue: #2b6ef5;
+  --blue-soft: #4f8cff;
+  --cyan: #6fe3ff;
+  --cyan-dim: #8fb7d8;
+  --white: #f2f7ff;
+  --ink: #0a1533;
+  --paper: #eef4fd;
+  --ink-accent: #1b4bbd; /* สีราคา/ตัวเน้นบนพื้นสว่าง — เปลี่ยนตามธีม */
+
+  --display: 'Chakra Petch', 'Noto Sans Thai', 'Barlow Semi Condensed', sans-serif;
+  --body: 'Chakra Petch', 'Noto Sans Thai', system-ui, sans-serif;
+
+  /* มุมตัดเฉียงแบบ UI ของ P3 */
+  --cut: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  --cut-sm: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+
+  --glow: 0 0 0 1px rgba(111, 227, 255, .35), 0 14px 40px rgba(0, 0, 0, .55);
+}
+
+/* =====================================================================
+   ธีมสีแดง/ดำ อิง Persona 5 — สลับด้วย <ThemeToggle /> (theme/theme.js)
+   ตัวแปรชื่อเดียวกับด้านบนทั้งหมด แค่คนละค่า ทุก selector ที่ใช้ var(--xxx)
+   ในไฟล์นี้จึงเปลี่ยนสีตามอัตโนมัติ ไม่ต้องเขียน CSS ซ้ำสองชุด
+   ===================================================================== */
+:root[data-theme='red'] {
+  --navy-900: #0b0b0d;   /* ดำสนิท */
+  --navy-800: #161014;
+  --navy-700: #2a0f14;
+  --navy-600: #4a1319;
+  --blue: #e60012;       /* แดงหลัก (ชื่อตัวแปรเดิม แต่ค่าเปลี่ยนเป็นแดง) */
+  --blue-soft: #ff2d3d;
+  --cyan: #ff5a63;       /* "cyan" เดิม = สีเน้น/เรืองแสง ตอนนี้เป็นแดงสว่าง */
+  --cyan-dim: #d99aa0;
+  --white: #f6f4ef;
+  --ink: #150708;
+  --paper: #f6f2ec;
+  --ink-accent: #a3000c;
+
+  --display: 'Archivo Black', 'Noto Sans Thai', 'Arial Black', Impact, sans-serif;
+  --body: 'Barlow Condensed', 'Noto Sans Thai', 'Arial Narrow', Arial, sans-serif;
+
+  /* P5 ใช้เงาแข็งไม่เบลอ ต่างจาก P3 ที่เรืองแสงฟุ้ง */
+  --glow: 0 0 0 1px rgba(230, 0, 18, .45), 10px 10px 0 rgba(0, 0, 0, .65);
+  --slab: #0b0b0d;
+  --hover-skew: -22deg; /* P5 เอียงจัดกว่า P3 เล็กน้อย */
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { scroll-behavior: auto; } /* ไม่เลื่อนแบบ smooth ตอนเปลี่ยนหน้า (เดิมทำให้เห็นหน้าไหลขึ้นบนสุด) */
+
+html, body { overflow-x: hidden; } /* การ์ด .cut เลื่อนเข้าจากขวาด้วย transform ชั่วขณะเกินขอบจอมือถือได้ */
+
+body {
+  min-height: 100vh;
+  background: var(--navy-900);
+  color: var(--white);
+  font-family: var(--body);
+  font-size: 16.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =====================================================================
+   พื้นหลัง (วาดโดย <Backdrop /> ใน src/theme/Backdrop.jsx)
+   ===================================================================== */
+.app,
+.login-wrap {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding-top: 40px;    /* เว้นที่ให้ HUD บน */
+  padding-bottom: 46px; /* เว้นที่ให้ HUD ล่าง */
+}
+
+#bg {
+  position: fixed;
+  inset: -6vmax;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+#bg-gradient {
+  background:
+    radial-gradient(120% 90% at 78% -10%, rgba(43, 110, 245, .55) 0%, transparent 55%),
+    radial-gradient(90% 70% at 10% 105%, rgba(111, 227, 255, .18) 0%, transparent 60%),
+    linear-gradient(170deg, var(--navy-700) 0%, var(--navy-800) 45%, var(--navy-900) 100%);
+}
+
+#bg-stripes {
+  background-image:
+    repeating-linear-gradient(112deg, rgba(255, 255, 255, .055) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(112deg, rgba(111, 227, 255, .10) 0 2px, transparent 2px 84px);
+  animation: streakDrift 26s linear infinite;
+}
+
+@keyframes streakDrift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 240px 0, 480px 0; }
+}
+
+#bg-grid {
+  background-image:
+    linear-gradient(rgba(111, 227, 255, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(111, 227, 255, .07) 1px, transparent 1px);
+  background-size: 62px 62px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 25%, transparent 78%);
+}
+
+/* ดวงจันทร์ */
+#bg-moon::before {
+  content: '';
+  position: absolute;
+  top: 2vmax;
+  right: 4vmax;
+  width: 52vmax;
+  height: 52vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%,
+      rgba(230, 244, 255, .22) 0%,
+      rgba(143, 200, 255, .12) 40%,
+      transparent 66%);
+  box-shadow: inset 0 0 120px rgba(111, 227, 255, .22);
+  animation: moonBreathe 11s ease-in-out infinite;
+}
+
+@keyframes moonBreathe {
+  0%, 100% { opacity: .85; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.035); }
+}
+
+#bg-vignette {
+  background: radial-gradient(ellipse at 34% 40%, transparent 28%, rgba(5, 11, 30, .8) 100%);
+}
+
+/* แถบทแยงเข้มฝั่งขวา ให้เนื้อหาฝั่งซ้ายอ่านง่าย */
+#bg-slash {
+  background:
+    linear-gradient(200deg, transparent 58%, rgba(5, 11, 30, .9) 86%);
+}
+
+/* ---------- รูปพื้นหลังต่อหน้าจอ: public/assets/menus/<screen>.jpg ---------- */
+.menu-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  will-change: transform, opacity;
+  pointer-events: none;
+  transition: none; /* สลับรูปพื้นหลังทันที ไม่ crossfade */
+}
+
+.menu-art.on { opacity: 1; }
+
+/* =====================================================================
+   HUD บน-ล่าง (<HudTop /> / <HudBottom />)
+   ===================================================================== */
+#hud-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px 0;
+  pointer-events: none;
+}
+
+.hud-tag {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(5, 11, 30, .8);
+  padding: 5px 13px;
+  clip-path: var(--cut-sm);
+  box-shadow: inset 0 0 0 1px rgba(111, 227, 255, .35);
+}
+
+.hud-tag.alt {
+  color: var(--navy-900);
+  background: var(--cyan);
+  box-shadow: 0 0 18px rgba(111, 227, 255, .45);
+}
+
+.hud-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* =====================================================================
+   ปุ่มสลับธีม (<ThemeToggle /> ใน theme/Hud.jsx)
+   ===================================================================== */
+.theme-toggle {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: rgba(5, 11, 30, .8);
+  padding: 5px 13px;
+  clip-path: var(--cut-sm);
+  box-shadow: inset 0 0 0 1px rgba(111, 227, 255, .35);
+  transition: box-shadow .16s, transform .16s;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px var(--cyan), 0 0 16px rgba(111, 227, 255, .35);
+}
+
+.theme-toggle-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  /* จุดวงกลมนี้โชว์ "สีที่จะได้ถ้ากด" ไม่ใช่สีปัจจุบัน — ตั้งใจให้เป็น preview */
+  background: #e60012;
+  box-shadow: 0 0 8px rgba(230, 0, 18, .8);
+}
+
+/* ตอนอยู่ธีมแดงอยู่แล้ว ปุ่มจะพากลับไปน้ำเงิน จุด preview เลยกลายเป็นสีฟ้าแทน */
+.theme-toggle-red .theme-toggle-dot {
+  background: #6fe3ff;
+  box-shadow: 0 0 8px rgba(111, 227, 255, .8);
+}
+
+#hud-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 8px 20px calc(8px + env(safe-area-inset-bottom, 0px));
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--cyan-dim);
+  background: linear-gradient(0deg, rgba(5, 11, 30, .9), transparent);
+  pointer-events: none;
+}
+
+.hud-key {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 9px;
+  color: var(--navy-900);
+  background: var(--cyan);
+  font-weight: 700;
+  transform: skewX(-12deg);
+}
+
+/* =====================================================================
+   ระบบเพิ่มลดเสียงเพลงเมนู (<VolumeControl /> ใน theme/Hud.jsx)
+   ===================================================================== */
+.volume-control {
+  pointer-events: auto;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-mute {
+  border: 0;
+  cursor: pointer;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1;
+  padding: 4px 6px;
+  opacity: .85;
+  transition: opacity .14s, transform .14s;
+}
+
+.hud-mute:hover { opacity: 1; transform: scale(1.08); }
+
+.volume-step {
+  border: 0;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy-900);
+  background: var(--cyan);
+  clip-path: var(--cut-sm);
+  transition: filter .14s, transform .14s;
+}
+
+.volume-step:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+
+.volume-step:disabled {
+  cursor: not-allowed;
+  opacity: .3;
+  filter: none;
+}
+
+/* แถบเลื่อนปรับเสียง — สไตล์ custom track/thumb ทั้ง WebKit และ Firefox */
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 84px;
+  height: 4px;
+  background: rgba(111, 227, 255, .22);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  background: rgba(111, 227, 255, .22);
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  background: var(--cyan);
+  box-shadow: 0 0 8px rgba(111, 227, 255, .8);
+  transform: rotate(45deg);
+  transition: transform .12s;
+}
+
+.volume-slider:hover::-webkit-slider-thumb,
+.volume-slider:focus-visible::-webkit-slider-thumb {
+  transform: rotate(45deg) scale(1.25);
+}
+
+.volume-slider::-moz-range-track {
+  height: 4px;
+  background: rgba(111, 227, 255, .22);
+  border: 0;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--cyan);
+  box-shadow: 0 0 8px rgba(111, 227, 255, .8);
+  transform: rotate(45deg);
+}
+
+.volume-value {
+  min-width: 34px;
+  text-align: right;
+  color: var(--cyan);
+  letter-spacing: .1em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .volume-slider { width: 56px; }
+  .volume-value { display: none; }
+}
+
+#clock {
+  color: var(--cyan);
+  letter-spacing: .16em;
+}
+
+/* =====================================================================
+   เนื้อหา "ตัดเข้า" ทีละชิ้นตอนหน้าใหม่เมาท์ — ใส่ class="cut" แล้วกำหนด --i
+   (เดิมจังหวะนี้ผูกกับม่านตัดฉาก ตอนนี้ตัดม่านออกแล้ว เหลือแค่การ์ดทยอยเข้า)
+   ===================================================================== */
+/* เดิม .cut เคยเล่นแอนิเมชันเลื่อน+เอียงเข้าทุกครั้งที่หน้าเปลี่ยน (เหมือน transition
+   ระหว่างหน้าอีกชั้นซ่อนอยู่) ตอนนี้ตัดออกตามคำขอ ให้เนื้อหาโผล่ทันทีไม่มีการเคลื่อนไหว
+   คง class="cut" ไว้ในทุกที่ที่ใช้ เพื่อไม่ต้องแก้ JSX แต่ทำให้ไม่มีผลใด ๆ แล้ว */
+.cut {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cut { animation: none; }
+}
+
+/* =====================================================================
+   เคอร์เซอร์เรืองแสง (<Cursor />) — วาดด้วย CSS ไม่ต้องใช้ไฟล์รูป
+   ===================================================================== */
+@media (pointer: fine) {
+  body.cursor-on,
+  body.cursor-on * { cursor: none !important; }
+}
+
+#cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  z-index: 9999;
+  pointer-events: none;
+  display: none;
+  border: 2px solid var(--cyan);
+  rotate: 45deg;
+  box-shadow: 0 0 14px rgba(111, 227, 255, .8), inset 0 0 8px rgba(111, 227, 255, .5);
+  transition: width .14s, height .14s, margin .14s, background .14s;
+}
+
+#cursor::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
+}
+
+#cursor.link {
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  background: rgba(111, 227, 255, .14);
+}
+
+/* =====================================================================
+   ตัวอักษรตัดแปะ (<Ransom />)
+   ===================================================================== */
+.ransom {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+.ransom .ch {
+  display: inline-block;
+  line-height: 1;
+  padding: 0 .01em;
+  transition: transform .15s;
+}
+
+.ransom .ch.box {
+  background: var(--navy-900);
+  color: var(--cyan);
+  padding: .02em .09em;
+  margin: 0 .03em;
+}
+
+.ransom .ch.boxw {
+  background: var(--cyan);
+  color: var(--navy-900);
+  padding: .02em .09em;
+  margin: 0 .03em;
+}
+
+.ransom .ch.hi {
+  color: var(--cyan);
+  text-shadow: 0 0 16px rgba(111, 227, 255, .9);
+}
+
+h1:hover .ransom .ch { animation: jitter .35s ease both; }
+h1:hover .ransom .ch:nth-child(odd) { animation-delay: .03s; }
+h1:hover .ransom .ch:nth-child(3n)  { animation-delay: .06s; }
+
+@keyframes jitter {
+  0%   { transform: var(--t) translateY(0); }
+  35%  { transform: var(--t) translateY(-6px) rotate(3deg); }
+  70%  { transform: var(--t) translateY(2px) rotate(-2deg); }
+  100% { transform: var(--t) translateY(0); }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* บน panel พื้นสว่าง ต้องกลับสีตัวอักษรตัดแปะ */
+.panel .ransom .ch.boxw { background: var(--blue); color: var(--white); }
+.panel .ransom .ch.hi   { color: #1b4bbd; text-shadow: 0 0 14px rgba(43, 110, 245, .5); }
+
+/* ---------- ตัวหนังสือ ---------- */
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.08;
+  letter-spacing: .04em;
+}
+
+h1 { font-size: clamp(28px, 4vw, 48px); }
+h2 { font-size: clamp(17px, 2vw, 22px); margin-bottom: 14px; }
+h3 { font-size: 18px; letter-spacing: .02em; }
+
+p { margin-bottom: 10px; }
+
+.muted {
+  color: var(--cyan-dim);
+  font-size: 15px;
+}
+
+.panel .muted { color: #5b7395; }
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+/* =====================  TOP BAR  ===================== */
+.topbar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px clamp(16px, 4vw, 44px);
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(111, 227, 255, .22);
+  background: linear-gradient(180deg, rgba(5, 11, 30, .72), transparent);
+  backdrop-filter: blur(6px);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wordmark {
+  position: relative;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(25px, 3.2vw, 36px);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--white);
+  padding-left: 20px;
+  text-shadow: 0 0 22px rgba(111, 227, 255, .55);
+}
+
+.wordmark::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12%;
+  height: 76%;
+  width: 7px;
+  background: linear-gradient(180deg, var(--cyan), var(--blue));
+  transform: skewX(-14deg);
+  box-shadow: 0 0 14px rgba(111, 227, 255, .8);
+}
+
+.wordmark-lg {
+  font-size: clamp(38px, 6.5vw, 58px);
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+
+.who {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  padding: 5px 14px;
+  border: 1px solid rgba(111, 227, 255, .4);
+  clip-path: var(--cut-sm);
+  background: rgba(43, 110, 245, .16);
+}
+
+.cart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--white);
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--blue), var(--navy-600));
+  clip-path: var(--cut-sm);
+  transition: filter .18s, transform .18s, box-shadow .18s;
+  box-shadow: 0 0 0 1px rgba(111, 227, 255, .35);
+}
+
+.cart-link:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(79, 140, 255, .65), 0 0 0 1px var(--cyan);
+}
+
+.cart-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  background: var(--cyan);
+  color: var(--navy-900);
+  font-size: 13px;
+  font-weight: 700;
+  clip-path: var(--cut-sm);
+}
+
+/* แอนิเมชันระดับ component: ป้ายตะกร้ากระตุกตอนของเพิ่ม (ไม่เกี่ยวกับการเปลี่ยนหน้า) */
+.cart-count.bump { animation: cartBump .38s cubic-bezier(.34, 1.56, .64, 1); }
+
+@keyframes cartBump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-count.bump { animation: none; }
+}
+
+/* =====================  LAYOUT  ===================== */
+.page {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 26px clamp(16px, 4vw, 44px) 90px;
+}
+
+/* =====================  PANEL  ===================== */
+.panel {
+  position: relative;
+  background: linear-gradient(160deg, rgba(22, 48, 111, .92), rgba(10, 21, 51, .95));
+  color: var(--white);
+  padding: 26px 28px;
+  clip-path: var(--cut);
+  box-shadow: var(--glow);
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--blue) 45%, transparent);
+}
+
+.panel > * { position: relative; }
+
+.panel h2 {
+  position: relative;
+  padding-left: 16px;
+  color: var(--white);
+  margin-bottom: 18px;
+}
+
+.panel h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8%;
+  height: 84%;
+  width: 5px;
+  background: var(--cyan);
+  transform: skewX(-14deg);
+  box-shadow: 0 0 12px rgba(111, 227, 255, .8);
+}
+
+.narrow {
+  max-width: 620px;
+  margin: 5vh auto;
+}
+
+.narrow h1 { margin-bottom: 8px; }
+
+.narrow h1::after {
+  content: '';
+  display: block;
+  height: 3px;
+  width: 100%;
+  margin-top: 12px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+
+/* =====================  ปุ่ม  ===================== */
+.key {
+  display: inline-block;
+  border: 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--blue) 0%, #1b4bbd 100%);
+  color: var(--white);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  padding: 13px 26px;
+  clip-path: var(--cut-sm);
+  box-shadow: 0 0 0 1px rgba(111, 227, 255, .4), 0 6px 18px rgba(0, 0, 0, .45);
+  transition: transform .16s, filter .16s, box-shadow .16s;
+}
+
+.key:hover:not(:disabled) {
+  filter: brightness(1.22);
+  transform: translateY(-2px);
+  box-shadow: 0 0 26px rgba(79, 140, 255, .7), 0 0 0 1px var(--cyan);
+}
+
+.key:active:not(:disabled) {
+  transform: translateY(1px) scale(.985);
+  filter: brightness(.95);
+}
+
+.key:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+  box-shadow: 0 0 0 1px rgba(143, 183, 216, .25);
+}
+
+.key-quiet {
+  background: transparent;
+  color: var(--cyan);
+  box-shadow: inset 0 0 0 1px rgba(111, 227, 255, .5);
+}
+
+.key-quiet:hover:not(:disabled) {
+  background: rgba(111, 227, 255, .12);
+  color: var(--white);
+}
+
+.key-small {
+  font-size: 13px;
+  padding: 6px 14px;
+  letter-spacing: .08em;
+}
+
+.key-wide {
+  width: 100%;
+  text-align: center;
+  padding: 15px 20px;
+}
+
+.link {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--cyan);
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding: 3px 2px;
+  border-bottom: 1px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+
+.link:hover {
+  color: var(--white);
+  border-bottom-color: var(--cyan);
+}
+
+/* =====================  LOGIN  ===================== */
+.login-wrap {
+  display: grid;
+  place-items: center;
+  padding: 7vh 20px;
+}
+
+.login {
+  display: flex;
+  flex-direction: column;
+  width: min(470px, 100%);
+}
+
+.login h1 {
+  font-size: clamp(21px, 2.8vw, 27px);
+  margin-bottom: 8px;
+}
+
+.login h1::after {
+  content: '';
+  display: block;
+  height: 3px;
+  width: 100%;
+  margin-top: 14px;
+  margin-bottom: 22px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+
+.field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.field > span {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 7px;
+}
+
+.field input {
+  width: 100%;
+  border: 0;
+  background: rgba(5, 11, 30, .7);
+  box-shadow: inset 0 0 0 1px rgba(143, 183, 216, .35);
+  color: var(--white);
+  font-family: var(--body);
+  font-size: 16px;
+  padding: 12px 14px;
+  clip-path: var(--cut-sm);
+  transition: box-shadow .16s;
+}
+
+.field input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--cyan), 0 0 20px rgba(111, 227, 255, .35);
+}
+
+.field small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--cyan-dim);
+}
+
+.switch {
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--cyan-dim);
+}
+
+.hint {
+  margin-top: 12px;
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  padding: 5px 12px;
+  background: rgba(43, 110, 245, .18);
+  clip-path: var(--cut-sm);
+}
+
+.error {
+  color: #ffd9de;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 11px 15px;
+  margin-bottom: 16px;
+  background: rgba(214, 38, 70, .22);
+  box-shadow: inset 0 0 0 1px rgba(255, 108, 136, .55);
+  clip-path: var(--cut-sm);
+}
+
+/* =====================  SHOP  ===================== */
+.shop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 36px;
+  align-items: start;
+}
+
+.shop h1 {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 30px;
+  text-shadow: 0 0 26px rgba(111, 227, 255, .45);
+}
+
+.shop h1::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8%;
+  height: 84%;
+  width: 9px;
+  background: linear-gradient(180deg, var(--cyan), var(--blue));
+  transform: skewX(-14deg);
+  box-shadow: 0 0 18px rgba(111, 227, 255, .8);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 26px 24px;
+}
+
+/* ---------- การ์ดสินค้า ---------- */
+.product {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 20px;
+  background: linear-gradient(165deg, rgba(238, 244, 253, .97), rgba(205, 222, 245, .95));
+  color: var(--ink);
+  transition: transform .2s cubic-bezier(.2, .9, .3, 1), box-shadow .2s;
+}
+
+.product::before { background: linear-gradient(90deg, var(--blue), var(--cyan) 60%, transparent); }
+
+.product:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 0 0 1px var(--cyan), 0 20px 46px rgba(0, 0, 0, .6), 0 0 34px rgba(79, 140, 255, .35);
+}
+
+/* แอนิเมชันระดับ component: การ์ดเด้งสั้น ๆ ตอนกด "Add to cart" (ดู Shop.jsx) */
+.product.added { animation: productAdded .32s ease-out; }
+
+@keyframes productAdded {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product.added { animation: none; }
+}
+
+.product-img {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: var(--navy-800);
+}
+
+.product-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.55) contrast(1.06) brightness(.95);
+  transition: filter .25s, transform .35s;
+}
+
+.product:hover .product-img img {
+  filter: saturate(1) contrast(1.02) brightness(1);
+  transform: scale(1.05);
+}
+
+.product-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgba(10, 21, 51, .5), transparent 55%);
+}
+
+.product-body {
+  padding: 16px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.product-body h3 {
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.price {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 21px;
+  color: var(--ink-accent);
+  margin: 0;
+}
+
+.in-cart {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--blue);
+  padding: 4px 10px;
+  clip-path: var(--cut-sm);
+}
+
+.product-add { margin-top: 4px; }
+
+/* =====================================================================
+   Skeleton — โครงเนื้อหาตอนกำลังโหลดสินค้าจริง (ดู components/Skeleton.jsx)
+   ทรงและขนาดเลียนแบบ .product การ์ดจริง (รูปทรง var(--cut) เดียวกัน) เพื่อไม่ให้
+   จอ "กระโดด" ตอนสลับจาก skeleton เป็นการ์ดจริง
+   ===================================================================== */
+.product-skel {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 20px;
+  background: linear-gradient(165deg, rgba(238, 244, 253, .55), rgba(205, 222, 245, .5));
+  clip-path: var(--cut);
+  /* โผล่ทันที ไม่มีดีเลย์ — จุดประสงค์ของ skeleton คือให้เห็นทันทีตอนหน้าโหลด
+     ไม่ใช่มาไล่แอนิเมชันเข้าทีละใบ (ถ้าดีเลย์ จะเห็นจอว่างช่วงแรกแทน) */
+}
+
+.skel-block,
+.skel-img,
+.skel-line {
+  position: relative;
+  overflow: hidden;
+  background: rgba(10, 21, 51, .18);
+}
+
+/* แสงกวาดเฉียง ๆ วิ่งผ่านทุกบล็อก พร้อมกันด้วย animation-delay ติดลบ (sync เฟส) */
+.skel-block::after,
+.skel-img::after,
+.skel-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%);
+  animation: none;
+}
+
+@keyframes skelShine {
+  to { transform: translateX(100%); }
+}
+
+.skel-img { height: 180px; }
+
+.skel-body {
+  padding: 16px 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.skel-line { height: 14px; border-radius: 2px; }
+.skel-line-title { width: 78%; height: 17px; }
+.skel-line-title-short { width: 48%; height: 17px; }
+
+.skel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.skel-line-price { width: 30%; }
+.skel-line-btn { width: 40%; height: 38px; border-radius: 0; clip-path: var(--cut-sm); }
+
+@media (prefers-reduced-motion: reduce) {
+  .product-skel { animation: none; }
+  .skel-block::after,
+  .skel-img::after,
+  .skel-line::after { animation: none; opacity: .5; transform: none; }
+}
+
+/* =====================  ตะกร้า  ===================== */
+.cart {
+  position: sticky;
+  top: 20px;
+}
+
+.cart-lines,
+.summary-lines {
+  list-style: none;
+  margin: 0 0 20px;
+}
+
+.cart-lines li {
+  padding: 14px 0;
+  border-top: 1px solid rgba(111, 227, 255, .2);
+}
+
+.cart-lines li:first-child { border-top: 0; }
+
+.cart-line-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+
+.cart-name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: .04em;
+  line-height: 1.2;
+}
+
+.cart-sub {
+  font-weight: 700;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepper .link {
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.qty {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  min-width: 26px;
+  text-align: center;
+  color: var(--cyan);
+}
+
+.cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--cyan-dim);
+  padding: 13px 16px;
+  margin-bottom: 20px;
+  background: rgba(5, 11, 30, .6);
+  box-shadow: inset 0 0 0 1px rgba(111, 227, 255, .3);
+  clip-path: var(--cut-sm);
+}
+
+.cart-total strong {
+  font-family: var(--display);
+  font-size: 21px;
+  letter-spacing: .02em;
+  color: var(--cyan);
+  text-shadow: 0 0 16px rgba(111, 227, 255, .6);
+}
+
+/* =====================  CHECKOUT  ===================== */
+.checkout { display: block; }
+
+.checkout-head {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.checkout-head h1 {
+  position: relative;
+  padding-left: 22px;
+  text-shadow: 0 0 26px rgba(111, 227, 255, .45);
+}
+
+.checkout-head h1::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8%;
+  height: 84%;
+  width: 9px;
+  background: linear-gradient(180deg, var(--cyan), var(--blue));
+  transform: skewX(-14deg);
+  box-shadow: 0 0 18px rgba(111, 227, 255, .8);
+}
+
+.checkout-head .link { order: -1; }
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 30px;
+  align-items: start;
+}
+
+.summary-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(111, 227, 255, .18);
+  font-size: 15.5px;
+}
+
+/* =====================  ADMIN DASHBOARD  ===================== */
+.admin { display: block; }
+
+.admin-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* ---------- อัปโหลดสลิป ---------- */
+.dropzone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  padding: 20px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--cyan-dim);
+  font-size: 14.5px;
+  letter-spacing: .06em;
+  background:
+    repeating-linear-gradient(112deg, rgba(111, 227, 255, .05) 0 1px, transparent 1px 9px),
+    rgba(5, 11, 30, .55);
+  box-shadow: inset 0 0 0 2px rgba(111, 227, 255, .35);
+  clip-path: var(--cut-sm);
+  transition: box-shadow .18s, color .18s;
+}
+
+.dropzone:hover,
+.dropzone:focus-within {
+  color: var(--white);
+  box-shadow: inset 0 0 0 2px var(--cyan), 0 0 26px rgba(111, 227, 255, .3);
+}
+
+.dropzone.has-file {
+  box-shadow: inset 0 0 0 2px var(--blue-soft);
+}
+
+.dropzone input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dropzone img {
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  box-shadow: 0 0 0 1px var(--cyan), 0 10px 30px rgba(0, 0, 0, .6);
+}
+
+.file-name {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  padding: 5px 12px;
+  margin-bottom: 14px;
+  background: rgba(43, 110, 245, .18);
+  clip-path: var(--cut-sm);
+}
+
+/* =====================  RESPONSIVE  ===================== */
+@media (max-width: 960px) {
+  .shop { grid-template-columns: 1fr; }
+  .cart { position: static; }
+}
+
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+
+  .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .product-img { height: 140px; }
+  .product-body { padding: 14px 16px 0; }
+  .price-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  .who { display: none; }
+  .topbar { padding: 14px 16px; }
+  .panel { padding: 22px 20px; }
+
+  #bg-moon::before { width: 86vmax; height: 86vmax; }
+
+  #hud-top .hud-tag.alt { display: none; }
+  .theme-toggle { padding: 7px 9px; }
+  .theme-toggle-label { display: none; } /* ซ่อนข้อความ เหลือแค่จุดสีให้แตะ */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  #bg-stripes,
+  #bg-moon::before {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+
+  .key:hover:not(:disabled),
+  .product:hover,
+  .cart-link:hover { transform: none; }
+}
+
+/* =====================================================================
+   HOVER เฉียง — ชุดเดียวกับในคลิป
+   เทคนิค: แถบดำอยู่ใน ::after ที่ z-index: -1 จึงถูกวาด "หลังตัวหนังสือ"
+   แต่ยังอยู่หน้าพื้นปุ่ม (ที่ย้ายไปไว้ใน ::before) — ตัวหนังสือเลยไม่ถูกบัง
+   ===================================================================== */
+:root {
+  --slab: #05070f;
+  --hover-skew: -18deg;
+  --hover-ease: cubic-bezier(.2, .85, .25, 1);
+}
+
+/* ---------- ปุ่ม: แถบดำเฉียงกวาดเข้ามาหลังตัวหนังสือ + ลูกศร ◀ ---------- */
+.key {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  transition: transform .16s, box-shadow .16s, color .18s;
+}
+
+.key::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, var(--blue) 0%, #1b4bbd 100%);
+  clip-path: var(--cut-sm);
+}
+
+.key::after {
+  content: '◀';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 13px;
+  font-size: 9px;
+  color: var(--cyan);
+  background: var(--slab);
+  box-shadow: inset -2px 0 0 var(--cyan);
+  clip-path: var(--cut-sm);
+  transform: translateX(-150%) skewX(var(--hover-skew)) scaleX(1.25);
+  transition: transform .3s var(--hover-ease);
+}
+
+.key:hover:not(:disabled)::after,
+.key:focus-visible:not(:disabled)::after {
+  transform: translateX(0) skewX(var(--hover-skew)) scaleX(1.25);
+}
+
+/* แทนที่ filter: brightness เดิม — แถบดำทำหน้าที่เน้นแทนแล้ว */
+.key:hover:not(:disabled) {
+  filter: none;
+  transform: translateY(-2px);
+  color: var(--white);
+  box-shadow: 0 0 26px rgba(79, 140, 255, .55), 0 0 0 1px var(--cyan);
+}
+
+.key-quiet::before { background: transparent; }
+.key-quiet:hover:not(:disabled) { background: transparent; color: var(--white); }
+
+/* ปุ่ม +/− ในตะกร้าตัวเล็กเกินกว่าจะใส่ลูกศร */
+.key-small::after { content: ''; box-shadow: none; }
+
+.key:disabled::after { display: none; }
+
+/* ---------- ลิงก์: แถบดำเฉียงแบบเดียวกัน ---------- */
+.link {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  clip-path: var(--cut-sm);
+  padding: 5px 26px 5px 10px;
+  border-bottom: 0;
+  transition: color .18s;
+}
+
+.link::after {
+  content: '◀';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 9px;
+  font-size: 9px;
+  color: var(--cyan);
+  background: var(--slab);
+  clip-path: var(--cut-sm);
+  transform: translateX(-150%) skewX(var(--hover-skew)) scaleX(1.25);
+  transition: transform .3s var(--hover-ease);
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--white);
+  border-bottom-color: transparent;
+}
+
+.link:hover::after,
+.link:focus-visible::after {
+  transform: translateX(0) skewX(var(--hover-skew)) scaleX(1.25);
+}
+
+/* ---------- การ์ดสินค้า: ยกขึ้นเล็กน้อยตอน hover ----------
+   เอาออก: perspective()/rotateX (ทำให้ตัวหนังสือเบลอ/สั่นเป็นประกาย) และแสงขาวเฉียงกวาดผ่านการ์ด (.product::after) */
+.product {
+  transform: none;
+  transition: transform .2s var(--hover-ease), box-shadow .2s;
+}
+
+.product:hover {
+  transform: translateY(-6px);
+}
+
+.product::after { content: none; }
+
+/* ---------- ชื่อสินค้า: แถบดำเฉียงโผล่ข้างหลัง ตัวหนังสือเป็นขาว ---------- */
+.product-body h3 {
+  position: relative;
+  isolation: isolate;
+  align-self: flex-start;
+  padding: 3px 9px;
+  margin-left: -9px;
+  transition: color .22s var(--hover-ease);
+}
+
+.product-body h3::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--slab);
+  box-shadow: inset -3px 0 0 var(--cyan);
+  clip-path: var(--cut-sm);
+  transform: translateX(calc(-100% - 30px)) skewX(var(--hover-skew));
+  transition: transform .3s var(--hover-ease);
+}
+
+.product:hover .product-body h3 { color: var(--white); }
+.product:hover .product-body h3::after {
+  transform: translateX(0) skewX(var(--hover-skew));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key::after,
+  .link::after,
+  .product-body h3::after { transition: none; }
+}
